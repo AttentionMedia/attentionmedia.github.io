@@ -34,8 +34,11 @@ while IFS= read -r -d '' FILE; do
     --short \
     --config false 2>/dev/null
   echo "encrypt.sh: encrypted $FILENAME → public-encrypted/$FILENAME"
-  git add "$OUTPUT_DIR/$FILENAME"
 done < <(find "$SOURCE_DIR" -name "*.html" -print0 2>/dev/null)
+
+if [ "$FOUND" -eq 1 ]; then
+  git -C "$REPO_ROOT" add "$OUTPUT_DIR/"
+fi
 
 if [ "$FOUND" -eq 0 ]; then
   echo "encrypt.sh: no HTML files found in source/ — skipping"
