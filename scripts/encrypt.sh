@@ -30,6 +30,7 @@ while IFS= read -r -d '' FILE; do
   "$STATICRYPT" "$FILE" \
     --password "$ENCRYPTION_SECRET" \
     --directory "$OUTPUT_DIR" \
+    --template "$REPO_ROOT/scripts/access-template.html" \
     --short \
     --config false 2>/dev/null
   echo "encrypt.sh: encrypted $FILENAME → public-encrypted/$FILENAME"
