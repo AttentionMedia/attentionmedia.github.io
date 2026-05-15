@@ -6,31 +6,36 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 ENV_FILE="$REPO_ROOT/.env"
 SOURCE_DIR="$REPO_ROOT/source"
 OUTPUT_DIR="$REPO_ROOT/public-encrypted"
+STATICRYPT="$REPO_ROOT/node_modules/.bin/staticrypt"
 
 if [ ! -f "$ENV_FILE" ]; then
   echo "encrypt.sh: .env not found — skipping encryption"
   exit 0
 fi
 
-export $(grep -v '^#' "$ENV_FILE" | xargs)
+set -a
+source "$ENV_FILE"
+set +a
 
 if [ -z "$ENCRYPTION_SECRET" ]; then
   echo "encrypt.sh: ENCRYPTION_SECRET not set in .env — skipping"
   exit 0
 fi
 
-HTML_FILES=$(find "$SOURCE_DIR" -name "*.html" 2>/dev/null)
+FOUND=0
 
-if [ -z "$HTML_FILES" ]; then
-  exit 0
-fi
-
-for FILE in $HTML_FILES; do
+while IFS= read -r -d '' FILE; do
+  FOUND=1
   FILENAME=$(basename "$FILE")
-  "$REPO_ROOT/node_modules/.bin/staticrypt" "$FILE" \
+  "$STATICRYPT" "$FILE" \
     --password "$ENCRYPTION_SECRET" \
-    --output "$OUTPUT_DIR/$FILENAME" \
-    --short 2>/dev/null
-  echo "encrypt.sh: encrypted $FILENAME"
+    --directory "$OUTPUT_DIR" \
+    --short \
+    --config false 2>/dev/null
+  echo "encrypt.sh: encrypted $FILENAME → public-encrypted/$FILENAME"
   git add "$OUTPUT_DIR/$FILENAME"
-done
+done < <(find "$SOURCE_DIR" -name "*.html" -print0 2>/dev/null)
+
+if [ "$FOUND" -eq 0 ]; then
+  echo "encrypt.sh: no HTML files found in source/ — skipping"
+fi
