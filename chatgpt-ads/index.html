@@ -455,8 +455,8 @@
 </footer>
 
 <script>
-  // Zapier webhook — replace with the live Catch Hook URL before launch
-  const WEBHOOK_URL = "REPLACE_WITH_ZAPIER_WEBHOOK_URL";
+  // Zapier Catch Hook → Pipedrive
+  const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/3783503/44qlf9p/";
 
   document.getElementById("lead-form").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -464,23 +464,16 @@
     const msg = document.getElementById("form-msg");
     msg.className = "form-msg";
 
-    if (WEBHOOK_URL.indexOf("REPLACE") === 0) {
-      msg.textContent = "Form isn't connected yet. Please email admin@attentionmedia.com.au instead.";
-      msg.classList.add("err");
-      return;
-    }
-
     btn.disabled = true;
     btn.textContent = "Sending…";
-    const data = Object.fromEntries(new FormData(this).entries());
-    data.source = "chatgpt-ads-landing";
-    data.submitted_at = new Date().toISOString();
+    const data = new URLSearchParams(new FormData(this));
+    data.append("source", "chatgpt-ads-landing");
+    data.append("submitted_at", new Date().toISOString());
 
     try {
       const res = await fetch(WEBHOOK_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: data
       });
       if (!res.ok) throw new Error("Request failed");
       msg.textContent = "Thanks, we've received your details and will be in touch shortly.";
